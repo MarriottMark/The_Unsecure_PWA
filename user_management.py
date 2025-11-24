@@ -1,22 +1,50 @@
 import sqlite3 as sql
 import time
 import random
+import bcrypt
 
 
-def insertUser(username, password, DoB):
+def insertUser(username, password, salt):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
     cur.execute(
-        "INSERT INTO users (username,password,dateOfBirth) VALUES (?,?,?)",
-        (username, password, DoB),
+        "INSERT INTO users (username,password, salt) VALUES (?,?,?)",
+        (username, password, salt),
     )
     con.commit()
     con.close()
 
 
 def retrieveUsers(username, password):
+
+    # connect to the database
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
+
+    # search the database for the hashed password
+    cur.execute(
+        "SELECT password FROM users WHERE username == ?",
+        (username,),
+    )
+    # get and store result
+    result = cur.fetchone()
+
+    # check that there is that user
+    if result == None:
+        con.close()
+        return False
+    # otherwise complete the matchup up
+    else:
+        hashedpw = result[0]
+        compare = bcrypt.checkpw(password, hashedpw)
+        # return the correct status
+        if compare == True:
+            con.close()
+            return True
+        else:
+            con.close()
+            return False
+
     # Original
     # Original was f string that was implementing the User's input in the username field directly into the SQL query making it runnable.
     # cur.execute(
@@ -40,18 +68,6 @@ def retrieveUsers(username, password):
     #     time.sleep(random.randint(80, 90) / 1000)
     #     con.close()
     #     return True
-
-    # New
-    cur.execute(
-        "SELECT * FROM users WHERE username == ? AND password == ?",
-        (username, password),
-    )
-
-    if cur.fetchone() == None:
-        con.close()
-        return False
-    else:
-        return True
 
 
 def insertFeedback(feedback):

@@ -4,6 +4,7 @@ from flask import request
 from flask import redirect
 from flask_cors import CORS
 import user_management as dbHandler
+import security as sec
 
 # Code snippet for logging a message
 # app.logger.critical("message")
@@ -36,8 +37,9 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        DoB = request.form["dob"]
-        dbHandler.insertUser(username, password, DoB)
+        salt = sec.getSalt()
+        hashedpw = sec.getHash(password, salt)
+        dbHandler.insertUser(username, hashedpw, salt)
         return render_template("/index.html")
     else:
         return render_template("/signup.html")
@@ -55,8 +57,11 @@ def home():
         msg = request.args.get("msg", "")
         return render_template("/index.html", msg=msg)
     elif request.method == "POST":
+        # gather the users inputs
         username = request.form["username"]
         password = request.form["password"]
+        # use user_managmetn.py function 'retrieveusers' to
+        # correctly log them in with the right account
         isLoggedIn = dbHandler.retrieveUsers(username, password)
         if isLoggedIn:
             dbHandler.listFeedback()
