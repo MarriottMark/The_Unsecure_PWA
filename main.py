@@ -21,7 +21,8 @@ def addFeedback():
         return redirect(url, code=302)
     if request.method == "POST":
         feedback = request.form["feedback"]
-        dbHandler.insertFeedback(feedback)
+        safefeedback = sec.xssremove(feedback)
+        dbHandler.insertFeedback(safefeedback)
         dbHandler.listFeedback()
         return render_template("/success.html", state=True, value="Back")
     else:

@@ -36,7 +36,7 @@ def retrieveUsers(username, password):
     # otherwise complete the matchup up
     else:
         hashedpw = result[0]
-        compare = bcrypt.checkpw(password, hashedpw)
+        compare = bcrypt.checkpw(password.encode("utf-8"), hashedpw)
         # return the correct status
         if compare == True:
             con.close()
@@ -74,7 +74,7 @@ def insertFeedback(feedback):
     con = sql.connect("database_files/database.db")
     cur = con.cursor()
     # Fix
-    cur.execute(f"INSERT INTO feedback (feedback) VALUES ('{feedback}')")
+    cur.execute("INSERT INTO feedback (feedback) VALUES (?)", (feedback,))
     con.commit()
     con.close()
 
